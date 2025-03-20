@@ -429,6 +429,38 @@ app.post('/delete-video', (req, res) => {
   });
 });
 
+app.post('/rename-video', (req, res) => {
+    const { oldName, newName } = req.body;
+
+    // Gunakan __dirname untuk memastikan path absolut yang benar
+    const oldFilePath = path.join(__dirname, 'uploads', oldName); // Path file lama
+    const newFilePath = path.join(__dirname, 'uploads', newName); // Path file baru
+
+    console.log('Mencari file lama di:', oldFilePath); // Debug log
+
+    // Cek apakah file lama ada
+    if (!fs.existsSync(oldFilePath)) {
+        console.error('File lama tidak ditemukan di:', oldFilePath);
+        return res.status(400).json({ message: 'File lama tidak ditemukan' });
+    }
+
+    // Pastikan nama baru tidak sama dengan nama lama
+    if (oldName === newName) {
+        console.error('Nama baru sama dengan nama lama');
+        return res.status(400).json({ message: 'Nama baru tidak boleh sama dengan nama lama' });
+    }
+
+    // Rename file
+    fs.rename(oldFilePath, newFilePath, (err) => {
+        if (err) {
+            console.error('Gagal mengganti nama file:', err);
+            return res.status(500).json({ message: 'Gagal mengganti nama video', error: err.message });
+        }
+        console.log('Nama file berhasil diganti:', oldFilePath, 'menjadi', newFilePath);
+        res.status(200).json({ message: 'Video berhasil diganti namanya' });
+    });
+});
+
 app.get('/video/:filename', (req, res) => {
   const filename = req.params.filename;
   const filePath = path.join(__dirname, 'uploads', filename);
