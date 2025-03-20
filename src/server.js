@@ -748,28 +748,17 @@ app.post('/start-stream', async (req, res) => {
       });
     }
 
-    const command = ffmpeg(streamFilePath)
-      .inputFormat('mp4')
-      .inputOptions(['-re', ...(loop === 'true' ? ['-stream_loop -1'] : [])])
-      .outputOptions([
-        `-r ${fps || 30}`,
-        '-threads 2',
-        '-x264-params "nal-hrd=cbr"',
-        '-c:v libx264',
-        '-preset veryfast',
-        '-tune zerolatency',
-        `-b:v ${bitrate}k`,
-        `-maxrate ${bitrate}k`,
-        `-bufsize ${bitrate * 2}k`,
-        '-pix_fmt yuv420p',
-        '-g 60',
-        `-vf scale=${resolution}`,
-        '-c:a aac',
-        '-b:a 128k',
-        '-ar 44100',
-        '-f flv'
-      ])
-      .output(`${rtmp_url}/${stream_key}`);
+	const command = ffmpeg(streamFilePath)
+	  .inputFormat('mp4')
+	  .inputOptions(['-re', ...(loop === 'true' ? ['-stream_loop -1'] : [])])
+	  .outputOptions([
+		`-r ${fps || 30}`,
+		'-threads 2',
+		`-c:v copy`,        // Gunakan codec copy untuk video
+		`-c:a copy`,        // Gunakan codec copy untuk audio
+		`-f flv`            // Format output FLV (untuk streaming RTMP)
+	  ])
+	  .output(`${rtmp_url}/${stream_key}`);
 
     const duration = parseInt(schedule_duration, 10) * 60 * 1000;
     if (schedule_enabled === '1' && duration) {
